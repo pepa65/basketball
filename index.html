@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full Basketball Scoreboard (Responsive)</title>
+    <link href="https://fonts.cdnfonts.com/css/digital-7-mono" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #000;
+            --led-red: #ff0000;
+            --led-green: #00ff00;
+            --led-white: #ffffff;
+            --panel-gray: #1a1a1a;
+            
+            /* Button Colors */
+            --btn-face: linear-gradient(180deg, #444 0%, #222 100%);
+            --btn-border: #666;
+            --btn-shadow: #000;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            font-family: 'Roboto', sans-serif;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        #scalable-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-origin: center center;
+            width: 1900px; 
+            height: 1000px; 
+        }
+
+        .full-layout {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            min-width: max-content; 
+        }
+
+        /* --- Player Stats Panel --- */
+        .player-stats {
+            background-color: #000;
+            border: 2px solid #333;
+            padding: 10px;
+            width: 220px;
+            color: white;
+            font-family: 'Roboto', sans-serif;
+            border-radius: 8px;
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 40px;
+            font-weight: 900;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .col-num { width: 33%; color: var(--led-white); }
+        .col-foul { width: 33%; color: var(--led-red); }
+        .col-pts { width: 33%; color: var(--led-green); }
+
+        .player-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        .stat-input {
+            width: 33%;
+            background: transparent;
+            border: none;
+            text-align: center;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            outline: none;
+            padding: 2px 0;
+        }
+        .stat-input:focus { 
+            background-color: #111; 
+            border-bottom: 1px solid #555; 
+            color: #fff !important; 
+        }
+        
+        .inp-num { color: var(--led-white); }
+        .inp-foul { color: var(--led-red); }
+        .inp-pts { color: var(--led-green); }
+
+
+        /* --- Main Scoreboard --- */
+        .scoreboard {
+            width: 1300px; 
+            max-width: 100%;
+            background-color: var(--bg-color);
+            position: relative;
+            color: white;
+        }
+
+        /* --- Period Section --- */
+        .top-bar { display: flex; justify-content: center; margin-bottom: 5px; font-size: 24px; font-weight: bold; }
+        .period-box { display: flex; transform: scale(1.5); margin-bottom: 5px; }
+        .p-label { background: #111; border: 1px solid #333; padding: 5px 15px; display: flex; align-items: center; }
+        .p-num {
+            width: 50px; background: #111; border: 1px solid #333;
+            display: flex; justify-content: center; align-items: center; padding: 5px 0;
+            color: #555; transition: all 0.2s; cursor: pointer;
+        }
+        .p-num:hover { background-color: #ff2020; color: #0c0c0c; }
+        .p-active { background-color: var(--led-red); color: white; font-weight: 900; box-shadow: 0 0 10px var(--led-red); }
+
+        /* --- Main Clock --- */
+        .main-clock-area { display: flex; justify-content: center; align-items: center; margin-bottom: 0px; }
+        .digital-font { font-family: 'Digital-7 Mono', monospace; line-height: 1; }
+        .main-time {
+            font-size: 320px; color: var(--led-white); text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            letter-spacing: 0px; margin: 0 20px; text-align: center; line-height: 0.85; cursor: pointer; transition: color 0.2s;
+        }
+        .main-time:hover { color: #ffffcc; text-shadow: 0 0 30px rgba(255, 255, 200, 0.8); }
+
+        /* --- Buttons --- */
+        .sport-btn {
+            background: var(--btn-face); border: 2px solid var(--btn-border); border-radius: 6px;
+            box-shadow: 0 4px 0 var(--btn-shadow); cursor: pointer; display: flex;
+            justify-content: center; align-items: center; transition: all 0.1s; position: relative;
+        }
+        .sport-btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--btn-shadow); border-color: #888; }
+
+        .time-controls { display: flex; flex-direction: column; gap: 20px; align-items: center; }
+        .btn-time { width: 50px; height: 40px; }
+        .arrow-icon { border: solid #ccc; border-width: 0 3px 3px 0; display: inline-block; padding: 4px; }
+        .up .arrow-icon { transform: rotate(-135deg) translateY(-2px); }
+        .down .arrow-icon { transform: rotate(45deg) translateY(-2px); }
+        .time-label { font-size: 10px; color: #666; margin-top: 5px; text-transform: uppercase; font-weight: bold; }
+
+        /* Start/Stop */
+        .start-btn-container { text-align: center; margin-top: -10px; margin-bottom: 10px; position: relative; z-index: 10; }
+        .btn-start {
+            background: linear-gradient(180deg, #00ff2a 0%, #00c220 100%); color: #fff; border: 2px solid #adffbb;
+            padding: 8px 40px; font-weight: 900; font-size: 20px; cursor: pointer; text-transform: uppercase;
+            border-radius: 6px; box-shadow: 0 5px 0 #007513; text-shadow: 0 1px 2px rgba(0,0,0,0.4); transition: 0.1s;
+        }
+        .btn-start:active { transform: translateY(5px); box-shadow: none; }
+        .btn-stop { background: linear-gradient(180deg, #ff2222 0%, #cc0000 100%); border-color: #ff8888; box-shadow: 0 5px 0 #880000; }
+
+        /* --- Game Grid --- */
+        .game-grid { display: flex; justify-content: center; align-items: flex-start; margin-bottom: 10px; gap: 20px; }
+        .team-column { text-align: center; width: 350px; z-index: 1; display: flex; flex-direction: column; align-items: center;}
+        
+        .team-name { 
+            font-family: 'Roboto', sans-serif;
+            font-size: 60px; 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            margin-bottom: 0px;
+            background: transparent;
+            border: none;
+            color: white;
+            text-align: center;
+            width: 100%;
+            border-bottom: 2px solid transparent; 
+            transition: 0.3s;
+            cursor: pointer;
+            outline: none;
+            padding: 0;
+        }
+        .team-name:hover { border-bottom: 2px dashed #555; }
+        .team-name:focus { background-color: #111; border-bottom: 2px solid #fff; color: #fff; cursor: text; }
+
+        .score-display {
+            font-size: 280px; color: var(--led-green); text-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
+            margin: 0; line-height: 0.8; margin-top: -10px; 
+        }
+        .score-controls { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+        .btn-score { width: 90px; height: 55px; }
+        .tri-up { width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-bottom: 18px solid #0f0; filter: drop-shadow(0 0 2px #0f0); }
+        .tri-down { width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 18px solid #f00; filter: drop-shadow(0 0 2px #f00); }
+
+        .center-column { display: flex; flex-direction: column; align-items: center; padding-top: 10px; width: 180px; margin: 0; position: relative; z-index: 2; }
+        .label-shot { font-size: 30px; font-weight: 900; margin-bottom: 0px; white-space: nowrap; }
+        .shot-clock { font-size: 160px; color: var(--led-white); margin-bottom: 5px; width: 100%; text-align: center; line-height: 0.9; }
+        .shot-buttons { display: flex; gap: 10px; justify-content: center; width: 100%; }
+        .btn-shot { background: #333; color: white; border: 1px solid #555; padding: 5px 15px; font-size: 16px; cursor: pointer; border-radius: 4px; box-shadow: 0 2px 0 #000; }
+        .btn-shot:active { transform: translateY(2px); box-shadow: none; }
+
+        /* --- Bottom Section --- */
+        .bottom-section { display: flex; justify-content: center; align-items: flex-end; margin-top: 0px; position: relative; padding: 0 10px; gap: 200px; }
+
+        .bonus-bar {
+            border: 3px solid #333; color: #333; padding: 10px 5px; border-radius: 6px;
+            font-size: 16px; font-weight: bold; display: flex; flex-direction: column;
+            align-items: center; height: 70px; justify-content: center; background: #000;
+            width: 40px; transition: 0.3s;
+        }
+        .bonus-active { background-color: var(--led-red); border-color: var(--led-red); color: white; box-shadow: 0 0 15px var(--led-red); }
+        .bonus-text span { display: block; writing-mode: vertical-rl; text-orientation: upright; letter-spacing: -2px; }
+
+        .stats-group { display: flex; flex-direction: column; gap: 10px; transform: scale(1.3); margin-bottom: 5px;}
+        .stat-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .stat-label { font-weight: bold; font-size: 24px; width: 40px; }
+        .stat-label.red { color: var(--led-red); }
+        .stat-label.green { color: var(--led-green); }
+
+        .left-stats { transform-origin: bottom left; margin-left: 10px; }
+        .left-stats .stat-label { text-align: right; }
+        
+        .right-stats { transform-origin: bottom right; margin-right: 10px; }
+        .right-stats .stat-label { text-align: right; } 
+
+        .dots-container { display: flex; gap: 6px; width: 134px; }
+        
+        .left-stats .dots-container { flex-direction: row-reverse; } 
+        
+        .right-stats .dots-container { justify-content: flex-start; }
+
+        .dot { width: 22px; height: 22px; border-radius: 50%; background-color: #333; transition: 0.2s; display: inline-block;}
+        .dot.red-on { background-color: var(--led-red); box-shadow: 0 0 8px var(--led-red); }
+        .dot.green-on { background-color: var(--led-green); box-shadow: 0 0 8px var(--led-green); }
+
+        .pos-container { display: flex; flex-direction: column; align-items: center; position: relative; left: auto; transform: translateX(0) scale(1.5); bottom: 0; margin-bottom: 5px; cursor: pointer; width: 80px; }
+        .pos-label { font-size: 24px; font-weight: bold; margin-bottom: 2px; }
+        .pos-arrows { display: flex; flex-direction: column; gap: 2px; }
+        .arrow-left { width: 0; height: 0; border-top: 15px solid transparent; border-bottom: 15px solid transparent; border-right: 40px solid #333; }
+        .arrow-right { width: 0; height: 0; border-top: 15px solid transparent; border-bottom: 15px solid transparent; border-left: 40px solid #333; }
+        .arrow-left.active { border-right-color: var(--led-red); filter: drop-shadow(0 0 10px red); }
+        .arrow-right.active { border-left-color: var(--led-red); filter: drop-shadow(0 0 10px red); }
+
+        /* ปุ่ม Full Screen มุมขวาบน */
+        #btn-fullscreen {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 5px 10px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+        #btn-fullscreen:hover { opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+    <button id="btn-fullscreen" onclick="toggleFullScreen()">⛶ Full Screen</button>
+
+    <div id="scalable-container">
+        <div class="full-layout">
+            
+            <div class="player-stats">
+                <div class="stats-header">
+                    <span class="col-num">#</span> <span class="col-foul">F</span> <span class="col-pts">P</span>
+                </div>
+                <div id="left-players"></div>
+            </div>
+
+            <div class="scoreboard">
+                <div class="top-bar">
+                    <div class="period-box">
+                        <div class="p-label">PERIOD</div>
+                        <div class="p-num" id="p1" onclick="setPeriod(1)">1</div>
+                        <div class="p-num" id="p2" onclick="setPeriod(2)">2</div>
+                        <div class="p-num" id="p3" onclick="setPeriod(3)">3</div>
+                        <div class="p-num" id="p4" onclick="setPeriod(4)">4</div>
+                    </div>
+                </div>
+
+                <div class="main-clock-area">
+                    <div class="time-controls">
+                        <div class="sport-btn btn-time up" onclick="adjustMainTime(60)" title="+1 Min"><i class="arrow-icon"></i></div>
+                        <div class="sport-btn btn-time down" onclick="adjustMainTime(-60)" title="-1 Min"><i class="arrow-icon"></i></div>
+                        <div class="time-label">MIN</div>
+                    </div>
+                    
+                    <div class="main-time digital-font" id="main-timer" onclick="setCustomTime()" title="คลิกเพื่อตั้งเวลา">00:00</div>
+
+                    <div class="time-controls">
+                        <div class="sport-btn btn-time up" onclick="adjustMainTime(1)" title="+1 Sec"><i class="arrow-icon"></i></div>
+                        <div class="sport-btn btn-time down" onclick="adjustMainTime(-1)" title="-1 Sec"><i class="arrow-icon"></i></div>
+                        <div class="time-label">SEC</div>
+                    </div>
+                </div>
+
+                <div class="start-btn-container">
+                    <button class="btn-start" id="btn-start" onclick="toggleTimer()">START</button>
+                </div>
+
+                <div class="game-grid">
+                    <div class="team-column">
+                        <input type="text" class="team-name" value="FLAMES" onfocus="this.select()">
+                        <div class="score-display digital-font" id="score-home">00</div>
+                        <div class="score-controls">
+                            <div class="sport-btn btn-score" onclick="updateScore('home', 1)"><div class="tri-up"></div></div>
+                            <div class="sport-btn btn-score" onclick="updateScore('home', -1)"><div class="tri-down"></div></div>
+                        </div>
+                    </div>
+
+                    <div class="center-column">
+                        <div class="label-shot">SHOT</div>
+                        <div class="shot-clock digital-font" id="shot-timer">24</div>
+                        <div class="shot-buttons">
+                            <button class="btn-shot" onclick="resetShotClock(24)">24</button>
+                            <button class="btn-shot" onclick="resetShotClock(14)">14</button>
+                        </div>
+                    </div>
+
+                    <div class="team-column">
+                        <input type="text" class="team-name" value="CRICS" onfocus="this.select()">
+                        <div class="score-display digital-font" id="score-guest">00</div>
+                        <div class="score-controls">
+                            <div class="sport-btn btn-score" onclick="updateScore('guest', -1)"><div class="tri-down"></div></div>
+                            <div class="sport-btn btn-score" onclick="updateScore('guest', 1)"><div class="tri-up"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bottom-section">
+                    <div style="display: flex; align-items: flex-end; gap: 10px;">
+                        <div class="bonus-bar" id="bonus-home">
+                            <div class="bonus-text"><span>B</span><span>O</span><span>N</span><span>U</span><span>S</span></div>
+                        </div>
+                        <div class="stats-group left-stats">
+                            <div class="stat-row" onclick="addFoul('home')">
+                                <div class="dots-container" id="home-tf">
+                                    <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                                </div>
+                                <div class="stat-label red">TF</div>
+                            </div>
+                            <div class="stat-row" onclick="useTimeout('home')">
+                                <div class="dots-container" id="home-to">
+                                    <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                                </div>
+                                <div class="stat-label green">TO</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pos-container" onclick="togglePos()">
+                        <div class="pos-label">POS</div>
+                        <div class="pos-arrows">
+                            <div class="arrow-left" id="pos-left"></div>
+                            <div class="arrow-right active" id="pos-right"></div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-end; gap: 10px; flex-direction: row-reverse;">
+                        <div class="bonus-bar" id="bonus-guest">
+                            <div class="bonus-text"><span>B</span><span>O</span><span>N</span><span>U</span><span>S</span></div>
+                        </div>
+                        <div class="stats-group right-stats">
+                            <div class="stat-row" onclick="addFoul('guest')">
+                                <div class="stat-label red">TF</div>
+                                <div class="dots-container" id="guest-tf">
+                                    <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                                </div>
+                            </div>
+                            <div class="stat-row" onclick="useTimeout('guest')">
+                                <div class="stat-label green">TO</div>
+                                <div class="dots-container" id="guest-to">
+                                    <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="player-stats">
+                <div class="stats-header">
+                    <span class="col-num">#</span> <span class="col-foul">F</span> <span class="col-pts">P</span>
+                </div>
+                <div id="right-players"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- Full Screen Scaling Logic ---
+        function resizeBoard() {
+            const container = document.getElementById('scalable-container');
+            const targetWidth = 1900;  // ความกว้างดั้งเดิมของดีไซน์
+            const targetHeight = 1000; // ความสูงดั้งเดิมของดีไซน์ (ประมาณ)
+            
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            // คำนวณสัดส่วน (Scale Factor)
+            const scaleX = windowWidth / targetWidth;
+            const scaleY = windowHeight / targetHeight;
+            
+            // เลือกใช้ค่าที่น้อยกว่า เพื่อให้แสดงผลครบทั้งจอโดยไม่ตกขอบ (Letterbox)
+            const scale = Math.min(scaleX, scaleY) * 0.95; // คูณ 0.95 เพื่อเผื่อขอบนิดหน่อย
+            
+            container.style.transform = `scale(${scale})`;
+        }
+
+        window.addEventListener('resize', resizeBoard);
+        window.addEventListener('load', resizeBoard);
+
+        // ฟังก์ชันสำหรับปุ่ม Full Screen
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+
+        // --- Original Game Logic Below ---
+
+        // --- Generate Player Rows ---
+        function generatePlayerRows(containerId, count) {
+            const container = document.getElementById(containerId);
+            let html = '';
+            for(let i=0; i<count; i++) {
+                html += `
+                <div class="player-row">
+                    <input type="text" class="stat-input inp-num" value="" placeholder="00" onfocus="this.select()">
+                    <input type="text" class="stat-input inp-foul" value="0" onfocus="this.select()">
+                    <input type="text" class="stat-input inp-pts" value="0" onfocus="this.select()">
+                </div>`;
+            }
+            container.innerHTML = html;
+        }
+        
+        generatePlayerRows('left-players', 12);
+        generatePlayerRows('right-players', 12);
+
+        // --- Auto-clean leading zeros ---
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('stat-input')) {
+                let val = e.target.value;
+                if (val.length > 1 && val.startsWith('0')) {
+                    e.target.value = val.replace(/^0+/, '');
+                }
+            }
+        });
+        
+        // --- Directional Navigation ---
+        document.addEventListener('keydown', function(e) {
+            // Check if user is typing in a team name or other text input
+            const isInput = e.target.tagName === 'INPUT';
+
+            // Special handling for Team Name
+            if (e.target.classList.contains('team-name') && e.key === 'Enter') {
+                e.preventDefault();
+                e.target.blur();
+                return;
+            }
+
+            // *** ส่วนที่เพิ่มใหม่: Key Shortcuts for Shot Clock ***
+            // ทำงานเฉพาะเมื่อไม่ได้พิมพ์อยู่ในช่อง Input
+            if (!isInput) {
+                if (e.key === '1') {
+                    resetShotClock(24);
+                }
+                if (e.key === '2') {
+                    resetShotClock(14);
+                }
+            }
+
+            // Arrow Key Navigation logic (runs only if inside stat-input)
+            if (!e.target.classList.contains('stat-input')) return;
+
+            const currentInput = e.target;
+            const currentRow = currentInput.parentElement;
+            
+            if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                e.preventDefault();
+                const nextRow = currentRow.nextElementSibling;
+                if (nextRow) {
+                    let selector = '';
+                    if (currentInput.classList.contains('inp-num')) selector = '.inp-num';
+                    else if (currentInput.classList.contains('inp-foul')) selector = '.inp-foul';
+                    else if (currentInput.classList.contains('inp-pts')) selector = '.inp-pts';
+                    
+                    const target = nextRow.querySelector(selector);
+                    if(target) { target.focus(); target.select(); }
+                } else {
+                    currentInput.blur(); 
+                }
+            }
+            else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                const prevRow = currentRow.previousElementSibling;
+                if (prevRow) {
+                    let selector = '';
+                    if (currentInput.classList.contains('inp-num')) selector = '.inp-num';
+                    else if (currentInput.classList.contains('inp-foul')) selector = '.inp-foul';
+                    else if (currentInput.classList.contains('inp-pts')) selector = '.inp-pts';
+
+                    const target = prevRow.querySelector(selector);
+                    if(target) { target.focus(); target.select(); }
+                }
+            }
+            else if (e.key === 'ArrowRight') {
+                const nextInput = currentInput.nextElementSibling;
+                if (nextInput && nextInput.classList.contains('stat-input')) {
+                    e.preventDefault();
+                    nextInput.focus();
+                    nextInput.select();
+                }
+            }
+            else if (e.key === 'ArrowLeft') {
+                const prevInput = currentInput.previousElementSibling;
+                if (prevInput && prevInput.classList.contains('stat-input')) {
+                    e.preventDefault();
+                    prevInput.focus();
+                    prevInput.select();
+                }
+            }
+        });
+
+        document.addEventListener('focusout', function(e) {
+             if (e.target.classList.contains('stat-input') && !e.target.classList.contains('inp-num')) {
+                if (e.target.value === '') e.target.value = '0';
+             }
+        });
+
+        // --- State Variables ---
+        let mainTimeSeconds = 0 * 60 + 00; 
+        let shotTimeSeconds = 24;
+        let isRunning = false;
+        let timerInterval = null;
+        
+        let scoreHome = 00;
+        let scoreGuest = 00;
+        let period = 1;
+        let posLeft = false;
+
+        let foulsHome = 0;
+        let foulsGuest = 0;
+        let toHome = 0; 
+        let toGuest = 0; 
+
+        // --- Elements ---
+        const elMainTime = document.getElementById('main-timer');
+        const elShotTime = document.getElementById('shot-timer');
+        const elScoreHome = document.getElementById('score-home');
+        const elScoreGuest = document.getElementById('score-guest');
+        const btnStart = document.getElementById('btn-start');
+
+        // --- Timer Logic ---
+        function updateDisplay() {
+            let m = Math.floor(mainTimeSeconds / 60);
+            let s = mainTimeSeconds % 60;
+            elMainTime.innerHTML = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            elShotTime.innerText = shotTimeSeconds.toString().padStart(2, '0');
+        }
+
+        function toggleTimer() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                btnStart.innerText = "START";
+                btnStart.classList.remove('btn-stop');
+            } else {
+                isRunning = true;
+                btnStart.innerText = "STOP";
+                btnStart.classList.add('btn-stop');
+                timerInterval = setInterval(() => {
+                    if (mainTimeSeconds > 0) mainTimeSeconds--;
+                    if (shotTimeSeconds > 0) shotTimeSeconds--;
+                    if (shotTimeSeconds < 0) { shotTimeSeconds = 0; toggleTimer(); }
+                    if (mainTimeSeconds <= 0) { mainTimeSeconds = 0; toggleTimer(); }
+                    updateDisplay();
+                }, 1000);
+            }
+        }
+
+        function adjustMainTime(seconds) {
+            mainTimeSeconds += seconds;
+            if (mainTimeSeconds < 0) mainTimeSeconds = 0;
+            updateDisplay();
+        }
+
+        function setCustomTime() {
+            let wasRunning = isRunning;
+            if (isRunning) toggleTimer();
+            let input = prompt("", "10:00");
+            if (input) {
+                let parts = input.split(':');
+                if (parts.length === 2) {
+                    let m = parseInt(parts[0]);
+                    let s = parseInt(parts[1]);
+                    if (!isNaN(m) && !isNaN(s)) {
+                        mainTimeSeconds = (m * 60) + s;
+                        updateDisplay();
+                    }
+                } else if (parts.length === 1) {
+                    let m = parseInt(parts[0]);
+                    if (!isNaN(m)) {
+                        mainTimeSeconds = m * 60;
+                        updateDisplay();
+                    }
+                }
+            }
+            if (wasRunning) toggleTimer();
+        }
+
+        function resetShotClock(val) { shotTimeSeconds = val; updateDisplay(); }
+
+        function updateScore(team, val) {
+            if (team === 'home') {
+                scoreHome += val;
+                if (scoreHome < 0) scoreHome = 0;
+                elScoreHome.innerText = scoreHome;
+            } else {
+                scoreGuest += val;
+                if (scoreGuest < 0) scoreGuest = 0;
+                elScoreGuest.innerText = scoreGuest;
+            }
+        }
+
+        function addFoul(team) {
+            let current = (team === 'home') ? foulsHome : foulsGuest;
+            current++;
+            if (current > 5) current = 0; 
+
+            if (team === 'home') foulsHome = current;
+            else foulsGuest = current;
+
+            renderDots(team + '-tf', current, 5, 'red-on');
+
+            const bonusEl = document.getElementById('bonus-' + team);
+            if (current >= 5) bonusEl.classList.add('bonus-active');
+            else bonusEl.classList.remove('bonus-active');
+        }
+
+        function useTimeout(team) {
+            let maxTO = (period <= 2) ? 2 : 3;
+            let current = (team === 'home') ? toHome : toGuest;
+            
+            current--;
+            if (current < 0) current = maxTO;
+
+            if (team === 'home') toHome = current;
+            else toGuest = current;
+
+            renderDotsWithCapacity(team + '-to', current, maxTO, 'green-on');
+        }
+
+        function setPeriod(num) {
+            document.getElementById(`p${period}`).classList.remove('p-active');
+            period = num;
+            document.getElementById(`p${period}`).classList.add('p-active');
+
+            foulsHome = 0; foulsGuest = 0;
+            renderDots('home-tf', 0, 5, 'red-on');
+            renderDots('guest-tf', 0, 5, 'red-on');
+            document.getElementById('bonus-home').classList.remove('bonus-active');
+            document.getElementById('bonus-guest').classList.remove('bonus-active');
+
+            let maxTO = (period <= 2) ? 2 : 3;
+            toHome = maxTO; toGuest = maxTO;
+            renderDotsWithCapacity('home-to', toHome, maxTO, 'green-on');
+            renderDotsWithCapacity('guest-to', toGuest, maxTO, 'green-on');
+        }
+
+        function renderDots(id, activeCount, total, activeClass) {
+            const container = document.getElementById(id);
+            const dots = container.getElementsByClassName('dot');
+            for(let d of dots) {
+                d.style.display = 'inline-block'; 
+                d.classList.remove('red-on', 'green-on');
+            }
+            for(let i = 0; i < activeCount; i++) if(i < total) dots[i].classList.add(activeClass);
+        }
+
+        function renderDotsWithCapacity(id, activeCount, capacity, activeClass) {
+            const container = document.getElementById(id);
+            const dots = container.getElementsByClassName('dot'); 
+            for(let i = 0; i < 5; i++) {
+                if (i < capacity) {
+                    dots[i].style.display = 'inline-block';
+                    dots[i].classList.remove(activeClass);
+                    if (i < activeCount) dots[i].classList.add(activeClass);
+                } else {
+                    dots[i].style.display = 'none';
+                }
+            }
+        }
+
+        function togglePos() {
+            const leftArrow = document.getElementById('pos-left');
+            const rightArrow = document.getElementById('pos-right');
+            posLeft = !posLeft;
+            if (posLeft) {
+                leftArrow.classList.add('active');
+                rightArrow.classList.remove('active');
+            } else {
+                leftArrow.classList.remove('active');
+                rightArrow.classList.add('active');
+            }
+        }
+
+        // Initialize Logic
+        setPeriod(1);
+
+    </script>
+</body>
+</html>
