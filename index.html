@@ -629,11 +629,11 @@
             if (team === 'home') {
                 scoreHome += val;
                 if (scoreHome < 0) scoreHome = 0;
-                elScoreHome.innerText = scoreHome;
+                elScoreHome.innerText = (scoreHome < 10 ? " " : "") + scoreHome;
             } else {
                 scoreGuest += val;
                 if (scoreGuest < 0) scoreGuest = 0;
-                elScoreGuest.innerText = scoreGuest;
+                elScoreGuest.innerText = (scoreGuest < 10 ? "0" : "") + scoreGuest;
             }
         }
 
@@ -724,4 +724,5 @@
 
     </script>
 </body>
+
 </html>
